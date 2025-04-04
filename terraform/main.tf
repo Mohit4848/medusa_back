@@ -110,7 +110,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
 # EC2 Launch Template
 resource "aws_launch_template" "ecs_lt" {
   name_prefix   = "${var.app_name}-lt-${var.app_environment}"
-  image_id      = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
+  image_id      = "ami-084568db4383264d4" # Ubuntu 22.04 LTS in us-east-1
   instance_type = var.ec2_instance_type
   
   user_data = base64encode(<<-EOF
