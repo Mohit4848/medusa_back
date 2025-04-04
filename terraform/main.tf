@@ -119,15 +119,8 @@ resource "aws_launch_template" "ecs_lt" {
     apt-get install -y docker.io awscli
     systemctl start docker
     systemctl enable docker
-    # Create directory for ECS config
-    mkdir -p /etc/ecs
-
-    # Configure ECS agent to join your cluster
-    echo "ECS_CLUSTER=${var.app_name}-cluster-${var.app_environment}" >> /etc/ecs/ecs.config
-
-    # Install ECS agent (Amazon Linux uses amazon-linux-extras, but Ubuntu is different)
-    curl -o /tmp/ecs-agent.deb https://s3.amazonaws.com/amazon-ecs-agent-us-east-1/amazon-ecs-init-latest.deb
-    apt-get install -y /tmp/ecs-agent.deb
+    echo ECS_CLUSTER=${var.app_name}-cluster-${var.app_environment} >> /etc/ecs/ecs.config
+    apt-get install -y /tmp/ecs-agent.deb 
     systemctl start ecs
     systemctl enable ecs
   EOF
