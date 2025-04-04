@@ -116,13 +116,32 @@ resource "aws_launch_template" "ecs_lt" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     apt-get update
-    apt-get install -y docker.io awscli
+    apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io awscli
     systemctl start docker
     systemctl enable docker
-    echo ECS_CLUSTER=${var.app_name}-cluster-${var.app_environment} >> /etc/ecs/ecs.config
-    apt-get install -y /tmp/ecs-agent.deb 
-    systemctl start ecs
-    systemctl enable ecs
+
+    # Install ECS agent
+    mkdir -p /etc/ecs
+    echo "ECS_CLUSTER=medusa-backend-cluster-dev" > /etc/ecs/ecs.config
+    echo "ECS_AVAILABLE_LOGGING_DRIVERS=[\"json-file\",\"awslogs\"]" >> /etc/ecs/ecs.config
+
+    # Install ECS agent from Docker hub
+    docker pull amazon/amazon-ecs-agent:latest
+    docker run --name ecs-agent \
+      --detach=true \
+      --restart=on-failure:10 \
+      --volume=/var/run:/var/run \
+      --volume=/var/log/ecs/:/log \
+      --volume=/var/lib/ecs/data:/data \
+      --volume=/etc/ecs:/etc/ecs \
+      --volume=/etc/ecs:/var/lib/ecs/config \
+      --net=host \
+      --env-file=/etc/ecs/ecs.config \
+      amazon/amazon-ecs-agent:latest
   EOF
   )
   
