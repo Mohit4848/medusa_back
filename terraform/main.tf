@@ -202,6 +202,7 @@ resource "aws_ecs_task_definition" "medusa" {
       name      = "${var.app_name}-container"
       image     = "${var.dockerhub_username}/medusa-backend:latest"
       essential = true
+      memory    = 700
       portMappings = [
         {
           containerPort = 9000
