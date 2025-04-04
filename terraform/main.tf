@@ -126,7 +126,7 @@ resource "aws_launch_template" "ecs_lt" {
 
     # Install ECS agent
     mkdir -p /etc/ecs
-    echo "ECS_CLUSTER=medusa-backend-cluster-dev" > /etc/ecs/ecs.config
+    echo "ECS_CLUSTER=medusa-backend-cluster-dev" >> /etc/ecs/ecs.config
     echo "ECS_AVAILABLE_LOGGING_DRIVERS=[\"json-file\",\"awslogs\"]" >> /etc/ecs/ecs.config
 
     # Install ECS agent from Docker hub
