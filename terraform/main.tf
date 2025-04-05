@@ -271,7 +271,7 @@ resource "aws_ecs_service" "medusa" {
 }
 
 # Output the public IP of the EC2 instance
-output "public_ip" {
-  value = "Access Medusa at: http://<EC2_PUBLIC_IP>:9000"
-  description = "URL to access the Medusa backend"
+output "instance_public_ip" {
+  value       = "Once deployed, check the AWS EC2 console for the public IP and connect on port 9000"
+  description = "Instructions to find the public IP address"
 }
