@@ -19,7 +19,8 @@ RUN npm install -g @medusajs/medusa-cli
 COPY package*.json ./
 
 # Install dependencies with clean install and increased network timeout
-RUN npm ci --production=false --network-timeout 100000
+ARG NPM_LOG_LEVEL=notice
+RUN npm ci --production=false --loglevel=$NPM_LOG_LEVEL
 
 # Copy the rest of the application code
 COPY . .
