@@ -9,22 +9,7 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Set higher npm log level for debugging
-ENV NPM_CONFIG_LOGLEVEL=verbose
-ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Install Medusa CLI
-RUN npm install -g @medusajs/medusa-cli@latest
-
-# First, copy only package files and install dependencies
-COPY package.json .
-COPY package-lock.json* .
-COPY yarn.lock* .
-
-# Try yarn if available, otherwise fall back to npm
-RUN (test -f yarn.lock && yarn install --frozen-lockfile --network-timeout 600000) || \
-    (test -f package-lock.json && npm ci --network-timeout 600000) || \
-    npm install --no-package-lock --network-timeout 600000
 
 # Then copy the rest of the application code
 COPY . .
