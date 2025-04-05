@@ -6,10 +6,9 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: medusa-backend
   ECS_CLUSTER: medusa-backend-cluster-dev
   ECS_SERVICE: medusa-backend-service-dev
-  ECS_TASK_DEFINITION: medusa-backend-task-def
+  CONTAINER_NAME: medusa-backend-container
 
 jobs:
   build-and-push:
@@ -19,16 +18,16 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v3
-
+      
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
-
+      
     - name: Login to DockerHub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+        
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
@@ -44,18 +43,30 @@ jobs:
     needs: build-and-push
     
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
-
-    - name: Update ECS service with new image
+    
+    - name: Get current task definition
       run: |
-        aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} \
-                               --service ${{ env.ECS_SERVICE }} \
-                               --force-new-deployment
+        aws ecs describe-task-definition --task-definition medusa-backend-task-dev \
+        --query taskDefinition > task-definition.json
+    
+    - name: Update container image in task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:${{ github.sha }}
+    
+    - name: Deploy to Amazon ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
