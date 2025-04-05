@@ -1,32 +1,24 @@
-FROM node:18-slim
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Install required dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    build-essential \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# Copy package files first for better caching
+COPY package.json package-lock.json ./
 
-# Increase Node memory limit
+# Increase Node memory limit and use ci for cleaner installs
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN npm ci
 
-# Install Medusa CLI
-RUN npm install -g @medusajs/medusa-cli
-
-# Copy package.json and package-lock.json files
-COPY package*.json ./
-
-
-# Copy the rest of the application code
+# Then copy the rest of the app
 COPY . .
 
-# Build the application
-RUN npm run dev
+# Build if needed
+RUN npm run build
 
-# Expose the port
+# Environment settings
+ENV NODE_ENV=production
+ENV PORT=9000
+
 EXPOSE 9000
 
-# Command to run the application
 CMD ["npm", "start"]
