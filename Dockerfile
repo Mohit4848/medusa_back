@@ -1,4 +1,4 @@
-FROM node:18 AS builder
+FROM node:18-slim
 
 WORKDIR /app
 
@@ -9,38 +9,26 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Increase Node memory limit
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+# Install Medusa CLI
+RUN npm install -g @medusajs/medusa-cli
 
-# Then copy the rest of the application code
+# Copy package.json and package-lock.json files
+COPY package*.json ./
+
+# Install dependencies with clean install and increased network timeout
+RUN npm ci --production=false --network-timeout 100000
+
+# Copy the rest of the application code
 COPY . .
 
 # Build the application
 RUN npm run build
 
-# Final stage for smaller image
-FROM node:18-slim
-
-WORKDIR /app
-
-# Install only production dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy built application from builder stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./package.json
-
-# Medusa may need these directories
-COPY --from=builder /app/medusa-config.js* ./
-COPY --from=builder /app/data ./data
-COPY --from=builder /app/uploads ./uploads
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=9000
-
+# Expose the port
 EXPOSE 9000
 
-CMD ["node", "dist/main"]
+# Command to run the application
+CMD ["npm", "start"]
