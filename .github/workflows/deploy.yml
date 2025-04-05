@@ -38,6 +38,8 @@ jobs:
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:${{ github.sha }}
         cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:latest
         cache-to: type=inline
+        build-args: |
+           NPM_LOG_LEVEL=verbose
 
   deploy:
     name: Deploy to AWS ECS
