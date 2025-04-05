@@ -28,6 +28,24 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
+    # Debugging steps
+    - name: Check directory contents
+      run: ls -la
+
+    - name: Debug package.json
+      run: cat package.json
+        
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:${{ github.sha }}
+        cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/medusa-backend:latest
+        cache-to: type=inline
+        build-args: |
+          NPM_CONFIG_LOGLEVEL=verbose
+        
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
