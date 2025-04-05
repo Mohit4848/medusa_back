@@ -26,7 +26,7 @@ RUN npm ci --production=false --loglevel=$NPM_LOG_LEVEL
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN npm run dev
 
 # Expose the port
 EXPOSE 9000
